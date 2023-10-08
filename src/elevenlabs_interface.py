@@ -1,9 +1,9 @@
-import os
+import subprocess
 import io
 import requests
 from dotenv import load_dotenv
 import pydub
-from pydub.playback import play
+import os
 
 # Load environment variables from .env file
 load_dotenv()
@@ -37,8 +37,13 @@ def save_and_play_audio(response):
     for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
         if chunk:
             audio_data += chunk
-    audio = pydub.AudioSegment.from_mp3(io.BytesIO(audio_data))
-    play(audio)
+    
+    # Save audio data to a temporary file
+    with open("temp_audio.mp3", "wb") as temp_audio_file:
+        temp_audio_file.write(audio_data)
+    
+    # Use ffmpeg to play the temporary audio file and redirect stderr to /dev/null
+    subprocess.run(["ffmpeg", "-i", "temp_audio.mp3", "-af", "volume=2", "-y", "-hide_banner", "-loglevel", "error", "-nostdin", "-f", "alsa", "default"], stderr=subprocess.DEVNULL)
 
 def speak(text, voice="jsCqWAovK2LkecY7zXl4"):
     response = text_to_speech_stream(text, voice)

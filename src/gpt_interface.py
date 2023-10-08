@@ -24,7 +24,7 @@ character = {
 
 def get_response(messages):
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",
         messages=messages
     )
     return response['choices'][0]['message']['content']
@@ -88,7 +88,7 @@ def run_conversation():
                 messages.append({"role": "user", "content": user_input})
                 response = get_response(messages)
                 messages.append({"role": "assistant", "content": response})
-                print(f"BISCAYNE: {response}")
+                print(f"{character['name']} {response}\n")
 
                 # Handle the response for TTS
                 handle_response(response)
