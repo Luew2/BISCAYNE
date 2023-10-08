@@ -4,6 +4,7 @@ import os
 import re
 from dotenv import load_dotenv
 from elevenlabs_interface import speak
+import time
 
 # Load environment variables from .env file
 load_dotenv()
@@ -65,24 +66,35 @@ def run_conversation():
     Narrate every choice you make.
     """
 
-
-
-
-
     messages = [
         {"role": "system", "content": character_description}
     ]
-    while True:
-        user_input = input("\nYou: ")
-        if user_input.lower() == "exit":
-            break
-        messages.append({"role": "user", "content": user_input})
-        response = get_response(messages)
-        messages.append({"role": "assistant", "content": response})
-        print(f"BISCAYNE: {response}")
+ # Check for changes in the transcribed_text.txt file
+    last_modified = None
 
-        # Handle the response for TTS
-        handle_response(response)
+    while True:
+        # Check if transcribed_text.txt has been modified
+        current_modified = os.path.getmtime("transcribed_text.txt")
+        if current_modified != last_modified:
+            # File has been modified, read its contents
+            last_modified = current_modified
+
+            with open("transcribed_text.txt", "r") as text_file:
+                user_input = text_file.read().strip()
+
+                if user_input.lower() == "exit":
+                    break
+
+                messages.append({"role": "user", "content": user_input})
+                response = get_response(messages)
+                messages.append({"role": "assistant", "content": response})
+                print(f"BISCAYNE: {response}")
+
+                # Handle the response for TTS
+                handle_response(response)
+
+        # Add a delay to check for file changes periodically
+        time.sleep(1)
 
 if __name__ == "__main__":
     run_conversation()
