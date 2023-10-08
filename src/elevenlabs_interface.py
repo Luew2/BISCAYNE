@@ -14,7 +14,7 @@ ELVENLABS_API_KEY = os.environ.get("ELVENLABS_API_KEY")
 BASE_URL = "https://api.elevenlabs.io/v1"
 CHUNK_SIZE = 1024
 
-def text_to_speech_stream(text, voice_id="jsCqWAovK2LkecY7zXl4"):
+def text_to_speech_stream(text, voice_id):
     url = f"{BASE_URL}/text-to-speech/{voice_id}/stream"
     headers = {
         "Accept": "audio/mpeg",
@@ -40,7 +40,7 @@ def save_and_play_audio(response):
     audio = pydub.AudioSegment.from_mp3(io.BytesIO(audio_data))
     play(audio)
 
-def speak(text, voice):
+def speak(text, voice="jsCqWAovK2LkecY7zXl4"):
     response = text_to_speech_stream(text, voice)
     save_and_play_audio(response)
 

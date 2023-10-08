@@ -50,7 +50,7 @@ if __name__ == "__main__":
                     if os.path.exists("transcribed_text.txt"):
                         with open("transcribed_text.txt", "w") as text_file:
                             text_file.write("")
-
+                
                     # Save the transcribed text to the text document
                     with open("transcribed_text.txt", "a") as text_file:
                         text_file.write(transcribed_text)
@@ -59,10 +59,11 @@ if __name__ == "__main__":
                 os.remove(converted_filename)
             else:
                 print("Converted file does not exist.")
-
+            subprocess.run(["pkill", "ffmpeg"])
 
         elif command == "quit":
             if recording:
                 # If still recording, stop the recording first
                 subprocess.run(["pkill", "parec"])
+                subprocess.run(["pkill", "ffmpeg"])
             break
