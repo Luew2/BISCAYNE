@@ -15,21 +15,37 @@
 ## Setup
 
 1. **Clone the Repository**:
+```bash
 git clone https://github.com/yourusername/BISCAYNE.git
+```
 
-2. **Install Dependencies**:
+2. **Character Image**:
+Place a character image titled `character.png` in the `character` folder. This will be used to represent the AI character visually.
+
+3. **Run Character Creator**:
+Before starting the main program, navigate to the `src` directory and execute:
+```bash
+python char_creator.py
+```
+This will process the character image for use in the main program.
+
+4. **Install Dependencies**:
 Navigate to the project directory and run:
+```bash
 pip install -r requirements.txt
+```
 
-3. **API Keys**:
-Store your GPT-4 and Elven Labs API keys in `config/api_keys.json`.
+5. **API Keys**:
+Store your GPT-4 and Elven Labs API keys in a `.env` file. You can use `example.env` as a template. Simply copy its contents and replace the placeholders with your actual API keys.
 
-4. **Character Profiles**:
+6. **Character Profiles**:
 Update `characters/character_profiles.json` with the AI character's backstory and traits.
 
-5. **Run BISCAYNE**:
+7. **Run BISCAYNE**:
 Navigate to the `src` directory and execute:
+```bash
 python main.py
+```
 
 ## Usage
 

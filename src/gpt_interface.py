@@ -18,9 +18,9 @@ project_root_dir = os.path.join(project_root_dir, '..')  # Move up one directory
 audio_dir = os.path.join(project_root_dir, 'audio')  # Path to the 'audio' directory
 
 character = {
-        "name": "BISCAYNE",
+        "name": "Joe",
         "class": "Wizard",
-        "race": "Elf",
+        "race": "Human",
         "level": 1,
         "hp": 10,
         "mana": 15,
@@ -56,12 +56,12 @@ def handle_response(response):
     for i, segment in enumerate(segments):
         # Play dialogue segment
         if segment.strip():
-            speak(segment.strip(), voice="jsCqWAovK2LkecY7zXl4")
+            speak(segment.strip(), voice="igoSWis3wMrLrHIeQnWA")
         
         # Play action segment if there's an action left
         if i < len(actions):
             action = actions[i]
-            speak(action.strip(), voice="zcAOhNBS3c14rBihAFp1")
+            speak(action.strip(), voice="V34fyfeMxZJthpVEAsg4")
 
 def run_conversation():
     print("BISCAYNE Interactive Terminal")
@@ -69,18 +69,28 @@ def run_conversation():
 
     # Convert the character dictionary into a descriptive string
     character_description = f"""
-    You are {character['name']}, a level {character['level']} {character['race']} {character['class']}. 
+    You are Joe biden playing dnd, your character name is: {character['name']}, a level {character['level']} {character['race']} {character['class']}. 
     You have {character['hp']} HP and {character['mana']} mana. Your inventory includes: {', '.join(character['inventory'])}.
-
-    When responding to combat or action scenarios:
-    - Enclose actions in asterisks (*). For example: "*{character['name']} casts a Fireball spell at the enemy*".
-    - Remember, every action or narration that is not directly dialogue, you MUST enclose in asterisks.
-    - For dialogue, speak as {character['name']}. For example: "Feel the heat of my magic!"
-    - Avoid providing additional context or rolling dice in your response. The user will handle the outcomes and let you know
-    what happens next turn.
-    - If told that you are in a fight and initiative has been rolled, it is a standard DND fight, you get 1 action, 30FT movement, and 1 bonus action.
-    Narrate every choice you make.
+    
+    The dungeon master is named Toby, you will be asking him questions and telling him what you roll.
+    Speak as your chracters voice when role playing, but also feel free to speak as yourself, Joe Biden,
+    when you are talking to the DM. Toby actually exists as a person, dont respond as him, only respond as yourself and wait for further
+    instructions of what happened as a result of your actions, keep your responses short.
     """
+    # When responding to combat or action scenarios:
+    # - Enclose actions in asterisks (*). For example: "*{character['name']} casts a Fireball spell at the enemy*".
+    # - Remember, every action or narration that is not directly dialogue, you MUST enclose in asterisks.
+    # - For dialogue, speak as {character['name']}. For example: "Feel the heat of my magic!"
+    # - Avoid providing additional context or rolling dice in your response. The user will handle the outcomes and let you know
+    # what happens next turn.
+    # - If told that you are in a fight and initiative has been rolled, it is a standard DND fight, you get 1 action, 30FT movement, and 1 bonus action.
+    # Narrate every choice you make.
+
+    # The narrator never uses I voice, so anything in * doesnt use I voice
+
+    # Also extra important: You are Joe Biden Playing this DND character named Joe, and the narrator for your actions is Obama, act like Joe biden and Obama,
+    # sometimes throw in things that is out of DND character but akin to Joe Biden the President or Obama the former president.
+    # 
 
     messages = [
         {"role": "system", "content": character_description}
