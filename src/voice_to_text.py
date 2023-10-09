@@ -3,9 +3,14 @@ import os
 import sys
 import speech_recognition as sr
 
+# Set the root directory of the project
+project_root_dir = os.path.dirname(os.path.abspath(__file__))
+project_root_dir = os.path.join(project_root_dir, '..')  # Move up one directory to get the project root
+audio_dir = os.path.join(project_root_dir, 'audio')  # Path to the 'audio' directory
+
 recording = False
-temp_filename = "temp_audio.raw"  # Raw audio format
-converted_filename = "converted_audio.wav"  # Converted WAV format
+temp_filename = os.path.join(audio_dir, "temp_audio.raw")  # Raw audio format in 'audio' directory
+converted_filename = os.path.join(audio_dir, "converted_audio.wav")  # Converted WAV format in 'audio' directory
 
 def capture_audio():
     recognizer = sr.Recognizer()
@@ -26,7 +31,7 @@ def start_recording():
         print("Attempting to start recording...")
         recording = True
         # Start parec in the background
-        process = subprocess.Popen(["parec", "--format=s16le", "--rate=44100", "--channels=1", temp_filename])
+        process = subprocess.Popen(["parec", "--format=s16le", "--rate=44100", "--channels=1", temp_filename], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print(f"Process ID for parec: {process.pid}")
 
 def stop_recording():
@@ -35,10 +40,10 @@ def stop_recording():
         print("Attempting to stop recording...")
         recording = False
         # Kill parec process
-        subprocess.run(["pkill", "parec"])
+        subprocess.run(["pkill", "parec"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         # Convert the raw audio to WAV format using ffmpeg
-        subprocess.run(["ffmpeg", "-f", "s16le", "-ar", "44100", "-ac", "1", "-i", temp_filename, converted_filename])
+        subprocess.run(["ffmpeg", "-f", "s16le", "-ar", "44100", "-ac", "1", "-i", temp_filename, converted_filename], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         if os.path.exists(converted_filename):
             print("Converted file exists. Transcribing...")
@@ -59,7 +64,7 @@ def stop_recording():
             os.remove(converted_filename)
         else:
             print("Converted file does not exist.")
-        subprocess.run(["pkill", "ffmpeg"])
+        subprocess.run(["pkill", "ffmpeg"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 if __name__ == "__main__":
     print("Press Enter to start/stop recording (Ctrl+C to exit)")

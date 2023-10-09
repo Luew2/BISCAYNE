@@ -1,16 +1,21 @@
-# gpt_interface.py
 import openai
 import os
 import re
 from dotenv import load_dotenv
 from elevenlabs_interface import speak
 import time
+import subprocess
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Initialize OpenAI API Key from environment variable
 openai.api_key = os.environ.get("OPENAI_API_KEY")
+
+# Set the root directory of the project
+project_root_dir = os.path.dirname(os.path.abspath(__file__))
+project_root_dir = os.path.join(project_root_dir, '..')  # Move up one directory to get the project root
+audio_dir = os.path.join(project_root_dir, 'audio')  # Path to the 'audio' directory
 
 character = {
         "name": "BISCAYNE",
@@ -21,6 +26,17 @@ character = {
         "mana": 15,
         "inventory": ["wand", "spellbook"]
         }
+
+def cleanup_audio_files():
+    # Convert MP3 to WAV using ffmpeg and suppress output
+    subprocess.run(["ffmpeg", "-y", "-i", os.path.join(audio_dir, "temp_audio.mp3"), os.path.join(audio_dir, "temp_audio.wav")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
+    # Delete all segment files and the main MP3 file
+    for file in os.listdir(audio_dir):
+        if file.startswith("segment_") and file.endswith(".mp3"):
+            os.remove(os.path.join(audio_dir, file))
+    if os.path.exists(os.path.join(audio_dir, "temp_audio.mp3")):
+        os.remove(os.path.join(audio_dir, "temp_audio.mp3"))
 
 def get_response(messages):
     response = openai.ChatCompletion.create(
@@ -93,8 +109,11 @@ def run_conversation():
                 # Handle the response for TTS
                 handle_response(response)
 
+            # Clean up audio files after processing the entire speech
+            cleanup_audio_files()
+
         # Add a delay to check for file changes periodically
-        time.sleep(1)
+        time.sleep(.5)
 
 if __name__ == "__main__":
     run_conversation()

@@ -1,9 +1,12 @@
 import subprocess
-import io
+import time
 import requests
 from dotenv import load_dotenv
-import pydub
+from pydub import AudioSegment
 import os
+
+# At the top of the elevenlabs_interface script
+global audio_dir
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,6 +16,12 @@ ELVENLABS_API_KEY = os.environ.get("ELVENLABS_API_KEY")
 
 BASE_URL = "https://api.elevenlabs.io/v1"
 CHUNK_SIZE = 1024
+
+# Set the root directory of the project
+project_root_dir = os.path.dirname(os.path.abspath(__file__))
+project_root_dir = os.path.join(project_root_dir, '..')  # Move up one directory to get the project root
+project_root_dir = os.path.normpath(project_root_dir)  # Normalize the path
+audio_dir = os.path.join(project_root_dir, 'audio')  # Path to the 'audio' directory
 
 def text_to_speech_stream(text, voice_id):
     url = f"{BASE_URL}/text-to-speech/{voice_id}/stream"
@@ -32,22 +41,34 @@ def text_to_speech_stream(text, voice_id):
     response = requests.post(url, json=data, headers=headers, stream=True)
     return response
 
-def save_and_play_audio(response):
+def save_audio_segment(response):
     audio_data = b""
     for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
         if chunk:
             audio_data += chunk
     
-    # Save audio data to a temporary file
-    with open("temp_audio.mp3", "wb") as temp_audio_file:
-        temp_audio_file.write(audio_data)
+    # Generate a unique filename for each audio segment
+    segment_filename = os.path.join(audio_dir, f"segment_{int(time.time())}.mp3")
+    with open(segment_filename, "wb") as segment_file:
+        segment_file.write(audio_data)
     
-    # Use ffmpeg to play the temporary audio file and redirect stderr to /dev/null
-    subprocess.run(["ffmpeg", "-i", "temp_audio.mp3", "-af", "volume=2", "-y", "-hide_banner", "-loglevel", "error", "-nostdin", "-f", "alsa", "default"], stderr=subprocess.DEVNULL)
+    # Load the new segment
+    new_segment = AudioSegment.from_mp3(segment_filename)
+    
+    # Check if temp_audio.mp3 exists in the 'audio' directory, if it does, concatenate the new segment to it
+    temp_audio_path = os.path.join(audio_dir, "temp_audio.mp3")
+    if os.path.exists(temp_audio_path):
+        existing_audio = AudioSegment.from_mp3(temp_audio_path)
+        combined_audio = existing_audio + new_segment
+    else:
+        combined_audio = new_segment
+    
+    # Save the concatenated audio in the 'audio' directory
+    combined_audio.export(temp_audio_path, format="mp3")
 
 def speak(text, voice="jsCqWAovK2LkecY7zXl4"):
     response = text_to_speech_stream(text, voice)
-    save_and_play_audio(response)
+    save_audio_segment(response)
 
 # Example usage
 if __name__ == "__main__":
