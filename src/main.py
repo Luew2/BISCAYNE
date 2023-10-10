@@ -48,6 +48,10 @@ if __name__ == "__main__":
     # Load character images
     character, mouth, without_mouth = load_character_images(selected_character_json)
 
+    # Open the file in write mode to overwrite the existing content
+    with open('transcribed_text.txt', 'w') as file:
+        file.write("Welcome to DND! Await instructions and information.")
+
     # Create threads
     audio_thread = threading.Thread(target=audio_thread_function, args=(input_queue,))
     chat_thread = threading.Thread(target=run_conversation, args=(character_data,))
