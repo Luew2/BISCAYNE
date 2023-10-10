@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from elevenlabs_interface import speak
 import time
 import subprocess
+import json
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,16 +17,6 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 project_root_dir = os.path.dirname(os.path.abspath(__file__))
 project_root_dir = os.path.join(project_root_dir, '..')  # Move up one directory to get the project root
 audio_dir = os.path.join(project_root_dir, 'audio')  # Path to the 'audio' directory
-
-character = {
-        "name": "Joe",
-        "class": "Wizard",
-        "race": "Human",
-        "level": 1,
-        "hp": 10,
-        "mana": 15,
-        "inventory": ["wand", "spellbook"]
-        }
 
 def cleanup_audio_files():
     # Convert MP3 to WAV using ffmpeg and suppress output
@@ -45,7 +36,7 @@ def get_response(messages):
     )
     return response['choices'][0]['message']['content']
 
-def handle_response(response):
+def handle_response(response, character):
     # Regular expression to find all actions
     actions = re.findall(r'\*(.*?)\*', response)
 
@@ -56,14 +47,14 @@ def handle_response(response):
     for i, segment in enumerate(segments):
         # Play dialogue segment
         if segment.strip():
-            speak(segment.strip(), voice="igoSWis3wMrLrHIeQnWA")
+            speak(segment.strip(), voice=character["voice"])
         
         # Play action segment if there's an action left
         if i < len(actions):
             action = actions[i]
-            speak(action.strip(), voice="V34fyfeMxZJthpVEAsg4")
+            speak(action.strip(), voice=character["voice"])
 
-def run_conversation():
+def run_conversation(character):
     print("BISCAYNE Interactive Terminal")
     print("Type 'exit' to quit.")
 
@@ -72,10 +63,7 @@ def run_conversation():
     You are Joe biden playing dnd, your character name is: {character['name']}, a level {character['level']} {character['race']} {character['class']}. 
     You have {character['hp']} HP and {character['mana']} mana. Your inventory includes: {', '.join(character['inventory'])}.
     
-    The dungeon master is named Toby, you will be asking him questions and telling him what you roll.
-    Speak as your chracters voice when role playing, but also feel free to speak as yourself, Joe Biden,
-    when you are talking to the DM. Toby actually exists as a person, dont respond as him, only respond as yourself and wait for further
-    instructions of what happened as a result of your actions, keep your responses short.
+    {character['ai_system_message']}
     """
     # When responding to combat or action scenarios:
     # - Enclose actions in asterisks (*). For example: "*{character['name']} casts a Fireball spell at the enemy*".
@@ -117,13 +105,10 @@ def run_conversation():
                 print(f"{character['name']} {response}\n")
 
                 # Handle the response for TTS
-                handle_response(response)
+                handle_response(response, character)
 
             # Clean up audio files after processing the entire speech
             cleanup_audio_files()
 
         # Add a delay to check for file changes periodically
         time.sleep(.5)
-
-if __name__ == "__main__":
-    run_conversation()

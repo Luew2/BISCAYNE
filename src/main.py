@@ -1,8 +1,13 @@
+import sys
 import threading
 import queue
+import json
 from voice_to_text import start_recording, stop_recording
 from gpt_interface import run_conversation
-from char_video import main as char_video_main
+from char_video import main as char_video_main, load_character_images
+
+# Define a global variable for the selected character JSON path
+selected_character_json = None
 
 exit_program = False
 
@@ -26,12 +31,27 @@ def audio_thread_function(input_queue):
             continue
 
 if __name__ == "__main__":
+    # Check if a character JSON path is provided as an argument
+    if len(sys.argv) < 2:
+        print("Usage: python main.py <character_json_path>")
+        sys.exit(1)
+
+    # Read the selected character JSON file and convert it to a dictionary
+    with open(sys.argv[1], 'r') as f:
+        character_data = json.load(f)
+
+    # Set the selected character JSON path from the command line argument
+    selected_character_json = sys.argv[1]
+
     input_queue = queue.Queue()
+
+    # Load character images
+    character, mouth, without_mouth = load_character_images(selected_character_json)
 
     # Create threads
     audio_thread = threading.Thread(target=audio_thread_function, args=(input_queue,))
-    chat_thread = threading.Thread(target=run_conversation)
-    char_video_thread = threading.Thread(target=char_video_main)
+    chat_thread = threading.Thread(target=run_conversation, args=(character_data,))
+    char_video_thread = threading.Thread(target=char_video_main, args=(character, mouth, without_mouth))
 
     # Set threads as daemon
     audio_thread.daemon = True

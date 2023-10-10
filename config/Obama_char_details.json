@@ -1,0 +1,15 @@
+{
+    "name": "Obama",
+    "class": "Fighter",
+    "race": "Human",
+    "level": "3",
+    "hp": "22",
+    "mana": "0",
+    "inventory": [
+        "Dagger"
+    ],
+    "voice": "V34fyfeMxZJthpVEAsg4",
+    "image": "original_2.png",
+    "without_mouth": "without_mouth_2.png",
+    "mouth": "mouth_2.png"
+}

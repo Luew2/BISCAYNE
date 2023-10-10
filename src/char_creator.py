@@ -1,6 +1,14 @@
 import cv2
 import os
 import numpy as np
+import sys  # Add sys module for command-line argument
+
+# Accept the image file path as a command-line argument
+if len(sys.argv) != 2:
+    print("Usage: char_creator.py <image_file_path>")
+    sys.exit(1)
+
+image_path = sys.argv[1]  # Get the image file path from the command line
 
 # Set the root directory of the project as the working directory
 root_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
@@ -9,9 +17,7 @@ os.chdir(project_root_dir)  # Change to the root directory of the project
 
 # Global variables
 points = []
-image_path = os.path.join(project_root_dir, 'character', 'character.png')
 images_saved = False
-
 
 def click_event(event, x, y, flags, param):
     global points
@@ -47,22 +53,27 @@ def cut_and_save_mouth():
     bottom_left = min(points[2:], key=lambda x: x[0])
     bottom_right = max(points[2:], key=lambda x: x[0])
 
-    # Cut out the mouth
-    mouth = img[top_left[1]:bottom_left[1], top_left[0]:top_right[0]]
+    # Read the image with alpha channel
+    img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+    if img.shape[2] == 3:  # If no alpha channel, add one
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
     # Create an empty transparent image with the same dimensions as the main image
     transparent_mouth_img = np.zeros_like(img)
-    transparent_mouth_img[top_left[1]:bottom_left[1], top_left[0]:top_right[0]] = mouth
+    transparent_mouth_img[top_left[1]:bottom_left[1], top_left[0]:top_right[0]] = img[top_left[1]:bottom_left[1], top_left[0]:top_right[0]]
 
-    save_with_suffix('mouth_same_dim.png', transparent_mouth_img)
+    # Save the original image with a suffix
+    save_with_suffix('original.png', img)
+
+    # Save the mouth image with a suffix
+    save_with_suffix('mouth.png', transparent_mouth_img)
 
     # Make the mouth area transparent in the original image by setting the alpha channel to 0
     img[top_left[1]:bottom_left[1], top_left[0]:top_right[0], 3] = 0
-    save_with_suffix('character_without_mouth.png', img)
+    save_with_suffix('without_mouth.png', img)
 
     # Set the flag to indicate that the images have been saved
     images_saved = True
-
 
 # Read the image with alpha channel
 img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)

@@ -19,37 +19,22 @@
 git clone https://github.com/yourusername/BISCAYNE.git
 ```
 
-2. **Character Image**:
-Place a character image titled `character.png` in the `character` folder. This will be used to represent the AI character visually.
-
-3. **Run Character Creator**:
-Before starting the main program, navigate to the `src` directory and execute:
-```bash
-python char_creator.py
-```
-This will process the character image for use in the main program.
-
-4. **Install Dependencies**:
+2. **Install Dependencies**:
 Navigate to the project directory and run:
 ```bash
 pip install -r requirements.txt
 ```
 
-5. **API Keys**:
-Store your GPT-4 and Elven Labs API keys in a `.env` file. You can use `example.env` as a template. Simply copy its contents and replace the placeholders with your actual API keys.
-
-6. **Character Profiles**:
-Update `characters/character_profiles.json` with the AI character's backstory and traits.
-
-7. **Run BISCAYNE**:
+3. **Run The GUI tool**:
 Navigate to the `src` directory and execute:
 ```bash
-python main.py
+python src/gui.py
 ```
+From the GUI, you can upload the AI image, create a character class, and start the AI. You can also access the settings to input your API keys for OpenAI and Elven Labs.
 
 ## Usage
 
-1. Start the program and introduce the AI character using a system message.
+1. Start the program using the GUI and introduce the AI character using a system message.
 2. Use the push-to-talk button to describe the ongoing events in the DND game.
 3. BISCAYNE will generate a script for its character's actions and dialogues.
 4. Play out the AI's turn, roll for it, and then relay back the outcomes.
@@ -57,8 +42,9 @@ python main.py
 
 ## Contributing
 
-Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute.
+Contributions are welcome!
 
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for details.
+
