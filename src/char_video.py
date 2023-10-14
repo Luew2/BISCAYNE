@@ -5,6 +5,7 @@ import json
 from elevenlabs_interface import audio_dir
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
+from voice_to_text import start_recording, stop_recording
 
 # Set the root directory of the project
 project_root_dir = os.path.dirname(os.path.abspath(__file__))
@@ -18,6 +19,11 @@ WIDTH, HEIGHT = 1920, 1080
 
 # Colors
 WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+
+# Recording Button Attributes
+RECORDING_BUTTON_RADIUS = 20
+RECORDING_BUTTON_POS = (WIDTH // 2, HEIGHT - RECORDING_BUTTON_RADIUS - 30)  # 30 pixels offset from the bottom
 
 # Create screen and clock
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -28,6 +34,11 @@ clock = pygame.time.Clock()
 speed = 20  # Increased speed for more rapid movement
 moving_up = True
 max_movement = 5
+is_recording = False
+
+def draw_recording_indicator():
+    color = RED if is_recording else (200, 200, 200)  # Light gray if not recording, red if recording
+    pygame.draw.circle(screen, color, RECORDING_BUTTON_POS, RECORDING_BUTTON_RADIUS)
 
 def get_image(character_dir, filename):
     image_path = os.path.join(character_dir, filename)
@@ -67,6 +78,7 @@ def is_sound_playing(current_time, segments):
 
 def main(character, mouth, without_mouth):
     global moving_up
+    global is_recording
 
     character_rect = character.get_rect(center=(WIDTH/2, HEIGHT/2))
     mouth_rect = mouth.get_rect(center=(WIDTH/2, HEIGHT/2))
@@ -82,7 +94,15 @@ def main(character, mouth, without_mouth):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
+            if event.type == pygame.MOUSEBUTTONDOWN:  # Mouse button was pressed
+                mouse_pos = pygame.mouse.get_pos()
+                distance_to_button = ((mouse_pos[0] - RECORDING_BUTTON_POS[0])**2 + (mouse_pos[1] - RECORDING_BUTTON_POS[1])**2)**0.5
+                if distance_to_button <= RECORDING_BUTTON_RADIUS:  # Mouse clicked inside the button
+                    is_recording = not is_recording  # Toggle the recording state
+                    if is_recording:
+                        start_recording()
+                    else:
+                        stop_recording()
         current_mod_time = os.path.getmtime(audio_path)
         if current_mod_time != last_mod_time:
             pygame.mixer.music.load(audio_path)
@@ -113,6 +133,7 @@ def main(character, mouth, without_mouth):
         screen.fill(WHITE)
         screen.blit(without_mouth, character_rect.topleft)
         screen.blit(mouth, mouth_rect.topleft)
+        draw_recording_indicator()
 
         pygame.display.flip()
         clock.tick(60)

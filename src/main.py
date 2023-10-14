@@ -4,7 +4,7 @@ import queue
 import json
 from voice_to_text import start_recording, stop_recording
 from gpt_interface import run_conversation
-from char_video import main as char_video_main, load_character_images
+from char_video import main as char_video_main, load_character_images, is_recording
 
 # Define a global variable for the selected character JSON path
 selected_character_json = None
@@ -17,6 +17,7 @@ def set_exit_flag():
 
 def audio_thread_function(input_queue):
     recording = False
+    global is_recording  # Access the global variable
     while not exit_program:
         try:
             user_input = input_queue.get(timeout=1)  # 1-second timeout
@@ -24,11 +25,14 @@ def audio_thread_function(input_queue):
                 if recording:
                     stop_recording()
                     recording = False
+                    is_recording = False  # Update the variable
                 else:
                     start_recording()
                     recording = True
+                    is_recording = True  # Update the variable
         except queue.Empty:
             continue
+
 
 if __name__ == "__main__":
     # Check if a character JSON path is provided as an argument
@@ -50,7 +54,7 @@ if __name__ == "__main__":
 
     # Open the file in write mode to overwrite the existing content
     with open('transcribed_text.txt', 'w') as file:
-        file.write("Welcome to DND! Await instructions and information.")
+        file.write("Welcome to DND Chat GPT! Await instructions and information!")
 
     # Create threads
     audio_thread = threading.Thread(target=audio_thread_function, args=(input_queue,))
