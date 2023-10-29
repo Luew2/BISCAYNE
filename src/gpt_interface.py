@@ -6,6 +6,14 @@ from elevenlabs_interface import speak
 import time
 import subprocess
 import json
+import random
+import yt_dlp
+import mpv
+import vlc
+import signal
+import subprocess
+import threading
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,6 +25,45 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 project_root_dir = os.path.dirname(os.path.abspath(__file__))
 project_root_dir = os.path.join(project_root_dir, '..')  # Move up one directory to get the project root
 audio_dir = os.path.join(project_root_dir, 'audio')  # Path to the 'audio' directory
+
+functions_description = [
+    {
+        "name": "play_random_song",
+        "description": "Plays a song as a bard, use this to intimidate your opponents!",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    }
+]
+
+def play_random_song(playlist_url="https://www.youtube.com/playlist?list=PLNpnsfpDYQxQMptivYWl4tCtSKWt9RSCB"):
+    ydl_opts = {
+        'quiet': True,
+        'extract_flat': True,
+        'force_generic_extractor': True,
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        result = ydl.extract_info(playlist_url, download=False)
+        if 'entries' in result:
+            for attempt in range(10):  # 10 attempts
+                random_video = random.choice(result['entries'])
+                video_url = random_video['url']
+                print("Attempt:", attempt + 1)
+                print("Playing:", video_url)
+                command = f'yt-dlp -f bestaudio -o - "{video_url}" | mpv --no-video -'
+                try:
+                    subprocess.run(command, shell=True, check=True)
+                    break  # Exit the loop if the command succeeds
+                except subprocess.CalledProcessError:
+                    print("Error on attempt", attempt + 1)
+                    continue  # Continue to the next attempt if an error occurs
+            else:
+                print("All attempts failed.")
+        return ""
+
 
 def cleanup_audio_files():
     # Convert MP3 to WAV using ffmpeg and suppress output
@@ -32,9 +79,11 @@ def cleanup_audio_files():
 def get_response(messages):
     response = openai.ChatCompletion.create(
         model="gpt-4",
-        messages=messages
+        messages=messages,
+        functions=functions_description,
+        function_call="auto"
     )
-    return response['choices'][0]['message']['content']
+    return response
 
 def handle_response(response, character):
     # Regular expression to find all actions
@@ -65,20 +114,6 @@ def run_conversation(character):
     
     {character['ai_system_message']}
     """
-    # When responding to combat or action scenarios:
-    # - Enclose actions in asterisks (*). For example: "*{character['name']} casts a Fireball spell at the enemy*".
-    # - Remember, every action or narration that is not directly dialogue, you MUST enclose in asterisks.
-    # - For dialogue, speak as {character['name']}. For example: "Feel the heat of my magic!"
-    # - Avoid providing additional context or rolling dice in your response. The user will handle the outcomes and let you know
-    # what happens next turn.
-    # - If told that you are in a fight and initiative has been rolled, it is a standard DND fight, you get 1 action, 30FT movement, and 1 bonus action.
-    # Narrate every choice you make.
-
-    # The narrator never uses I voice, so anything in * doesnt use I voice
-
-    # Also extra important: You are Joe Biden Playing this DND character named Joe, and the narrator for your actions is Obama, act like Joe biden and Obama,
-    # sometimes throw in things that is out of DND character but akin to Joe Biden the President or Obama the former president.
-    # 
 
     messages = [
         {"role": "system", "content": character_description}
@@ -101,14 +136,30 @@ def run_conversation(character):
 
                 messages.append({"role": "user", "content": user_input})
                 response = get_response(messages)
-                messages.append({"role": "assistant", "content": response})
-                print(f"{character['name']} {response}\n")
+                messages.append({"role": "assistant", "content": response['choices'][0]['message']['content']})
 
+                print(f"{character['name']} {response['choices'][0]['message']['content']}\n") 
+                
+                print(response)
                 # Handle the response for TTS
-                handle_response(response, character)
+                if response['choices'][0]['message']['content'] is not None: 
+                    print("here 1")
+                    handle_response(response['choices'][0]['message']['content'], character) 
+
+                if response['choices'][0]['message'].get('function_call'):  
+                    print("here 2")
+                    function_name = response['choices'][0]['message']['function_call']['name']
+                    if function_name == "play_random_song":
+                        if response['choices'][0]['message']['content'] is not None: 
+                            time.sleep(10)
+                        play_random_song()
 
             # Clean up audio files after processing the entire speech
             cleanup_audio_files()
 
         # Add a delay to check for file changes periodically
         time.sleep(.5)
+
+
+if __name__ == "__main__":
+    play_random_song()
