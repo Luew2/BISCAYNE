@@ -38,8 +38,14 @@ functions_description = [
     }
 ]
 
+
+# good playlists:
+# https://www.youtube.com/playlist?list=PLe4I17Eh1We0PidflNjSYMgqewk36Z3Pm
+# https://www.youtube.com/playlist?list=PLNpnsfpDYQxQMptivYWl4tCtSKWt9RSCB
+
+
 terminate_song = False
-def play_random_song(playlist_url="https://www.youtube.com/playlist?list=PLNpnsfpDYQxQMptivYWl4tCtSKWt9RSCB"):
+def play_random_song(playlist_url="https://www.youtube.com/playlist?list=PLe4I17Eh1We0PidflNjSYMgqewk36Z3Pm"):
     global terminate_song
 
     # Check if temp_song.webm exists and delete it if it does
