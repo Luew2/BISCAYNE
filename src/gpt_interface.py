@@ -155,7 +155,7 @@ def run_conversation(character):
 
     # Convert the character dictionary into a descriptive string
     character_description = f"""
-    You are Joe biden playing dnd, your character name is: {character['name']}, a level {character['level']} {character['race']} {character['class']}. 
+    You are Clanker playing dnd, your character name is: {character['name']}, a level {character['level']} {character['race']} {character['class']}. 
     You have {character['hp']} HP and {character['mana']} mana. Your inventory includes: {', '.join(character['inventory'])}.
     
     {character['ai_system_message']}
@@ -188,16 +188,16 @@ def run_conversation(character):
                 response = get_response(messages)
                 messages.append({"role": "assistant", "content": response['choices'][0]['message']['content']})
 
-                print(f"{character['name']} {response['choices'][0]['message']['content']}\n") 
+                # print(f"{character['name']} {response['choices'][0]['message']['content']}\n") 
                 
-                print(response)
+                # print(response)
                 # Handle the response for TTS
                 if response['choices'][0]['message']['content'] is not None: 
-                    print("here 1")
+                    # print("here 1")
                     handle_response(response['choices'][0]['message']['content'], character) 
 
                 if response['choices'][0]['message'].get('function_call'):  
-                    print("here 2")
+                    # print("here 2")
                     function_name = response['choices'][0]['message']['function_call']['name']
                     if function_name == "play_random_song":
                         if response['choices'][0]['message']['content'] is not None: 
