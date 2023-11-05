@@ -38,11 +38,17 @@ functions_description = [
     }
 ]
 
+# Global variable to monitor song playback termination
+terminate_song = False
+
 def play_random_song(playlist_url="https://www.youtube.com/playlist?list=PLNpnsfpDYQxQMptivYWl4tCtSKWt9RSCB"):
+    global terminate_song
+
     ydl_opts = {
         'quiet': True,
         'extract_flat': True,
-        'force_generic_extractor': True,
+        'outtmpl': 'temp_song.%(ext)s',
+        'format': 'bestaudio/best'
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -53,16 +59,41 @@ def play_random_song(playlist_url="https://www.youtube.com/playlist?list=PLNpnsf
                 video_url = random_video['url']
                 print("Attempt:", attempt + 1)
                 print("Playing:", video_url)
-                command = f'yt-dlp -f bestaudio -o - "{video_url}" | mpv --no-video -'
+                
                 try:
-                    subprocess.run(command, shell=True, check=True)
-                    break  # Exit the loop if the command succeeds
-                except subprocess.CalledProcessError:
-                    print("Error on attempt", attempt + 1)
-                    continue  # Continue to the next attempt if an error occurs
+                    # First, download the audio
+                    ydl.download([video_url])
+
+                    # Determine the extension of the downloaded file
+                    downloaded_file = next((f for f in os.listdir() if f.startswith("temp_song.")), None)
+                    if not downloaded_file:
+                        print("Downloaded file not found.")
+                        return
+
+                    # Now play it using mpv
+                    mpv_process = subprocess.Popen(['mpv', '--no-video', downloaded_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    
+                    out, err = mpv_process.communicate()
+                    if out:
+                        print("MPV Output:", out.decode())
+                    if err:
+                        print("MPV Error:", err.decode())
+
+                    while True:
+                        if terminate_song:
+                            mpv_process.terminate()
+                            terminate_song = False
+                            return
+                        if mpv_process.poll() is not None:
+                            break
+                        time.sleep(0.5)
+                except Exception as e:
+                    print(f"Error on attempt {attempt + 1}: {str(e)}")
+                    continue
+                break  # Exit the loop if the command succeeds
             else:
                 print("All attempts failed.")
-        return ""
+
 
 
 def cleanup_audio_files():

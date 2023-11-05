@@ -33,6 +33,13 @@ def audio_thread_function(input_queue):
         except queue.Empty:
             continue
 
+def monitor_user_input():
+    global terminate_song
+    while True:
+        user_input = input()
+        if user_input == ".":
+            print("stopping song")
+            terminate_song = True
 
 if __name__ == "__main__":
     # Check if a character JSON path is provided as an argument
@@ -60,17 +67,20 @@ if __name__ == "__main__":
     audio_thread = threading.Thread(target=audio_thread_function, args=(input_queue,))
     chat_thread = threading.Thread(target=run_conversation, args=(character_data,))
     char_video_thread = threading.Thread(target=char_video_main, args=(character, mouth, without_mouth))
+    user_input_thread = threading.Thread(target=monitor_user_input)
+
 
     # Set threads as daemon
     audio_thread.daemon = True
     chat_thread.daemon = True
     char_video_thread.daemon = True
+    user_input_thread.daemon = True
 
     # Start threads
     audio_thread.start()
     chat_thread.start()
     char_video_thread.start()
-
+    user_input_thread.start()
     print("Press Enter to start/stop recording (Type 'exit' or Ctrl+C to exit)")
     try:
         while True:
