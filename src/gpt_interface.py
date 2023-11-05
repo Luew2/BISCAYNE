@@ -38,11 +38,14 @@ functions_description = [
     }
 ]
 
-# Global variable to monitor song playback termination
 terminate_song = False
-
 def play_random_song(playlist_url="https://www.youtube.com/playlist?list=PLNpnsfpDYQxQMptivYWl4tCtSKWt9RSCB"):
     global terminate_song
+
+    # Check if temp_song.webm exists and delete it if it does
+    temp_song_path = "temp_song.webm"
+    if os.path.exists(temp_song_path):
+        os.remove(temp_song_path)
 
     ydl_opts = {
         'quiet': True,
@@ -59,6 +62,20 @@ def play_random_song(playlist_url="https://www.youtube.com/playlist?list=PLNpnsf
                 video_url = random_video['url']
                 print("Attempt:", attempt + 1)
                 print("Playing:", video_url)
+
+
+                def monitor_process(mpv_proc):
+                    global terminate_song
+                    while True:
+                        if terminate_song:
+                            mpv_proc.terminate()  # Try terminating first
+                            mpv_proc.kill()  # Kill if terminate doesn't work
+                            terminate_song = False
+                            return
+                        if mpv_proc.poll() is not None:
+                            break
+                        time.sleep(0.5)
+
                 
                 try:
                     # First, download the audio
@@ -73,26 +90,24 @@ def play_random_song(playlist_url="https://www.youtube.com/playlist?list=PLNpnsf
                     # Now play it using mpv
                     mpv_process = subprocess.Popen(['mpv', '--no-video', downloaded_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     
+                    # Use threading to monitor the process
+                    monitor_thread = threading.Thread(target=monitor_process, args=(mpv_process,))
+                    monitor_thread.start()
+                    monitor_thread.join()  # Wait for the song to complete or be terminated
+
                     out, err = mpv_process.communicate()
                     if out:
                         print("MPV Output:", out.decode())
                     if err:
                         print("MPV Error:", err.decode())
 
-                    while True:
-                        if terminate_song:
-                            mpv_process.terminate()
-                            terminate_song = False
-                            return
-                        if mpv_process.poll() is not None:
-                            break
-                        time.sleep(0.5)
                 except Exception as e:
                     print(f"Error on attempt {attempt + 1}: {str(e)}")
                     continue
                 break  # Exit the loop if the command succeeds
             else:
                 print("All attempts failed.")
+        print("done")
 
 
 
@@ -166,6 +181,10 @@ def run_conversation(character):
                     break
 
                 messages.append({"role": "user", "content": user_input})
+                # Filter out messages with 'None' content
+                messages = [message for message in messages if message['content'] is not None]
+                if not messages:
+                    continue
                 response = get_response(messages)
                 messages.append({"role": "assistant", "content": response['choices'][0]['message']['content']})
 

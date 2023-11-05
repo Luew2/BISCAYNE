@@ -4,8 +4,9 @@ import queue
 import json
 from voice_to_text import start_recording, stop_recording
 from gpt_interface import run_conversation
+import gpt_interface
 from char_video import main as char_video_main, load_character_images, is_recording
-
+from gpt_interface import terminate_song
 # Define a global variable for the selected character JSON path
 selected_character_json = None
 
@@ -33,13 +34,14 @@ def audio_thread_function(input_queue):
         except queue.Empty:
             continue
 
+
 def monitor_user_input():
-    global terminate_song
     while True:
         user_input = input()
         if user_input == ".":
             print("stopping song")
-            terminate_song = True
+            gpt_interface.terminate_song = True
+
 
 if __name__ == "__main__":
     # Check if a character JSON path is provided as an argument
