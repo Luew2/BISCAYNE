@@ -194,7 +194,7 @@ def run_conversation(character):
                 response = get_response(messages)
                 messages.append({"role": "assistant", "content": response['choices'][0]['message']['content']})
 
-                # print(f"{character['name']} {response['choices'][0]['message']['content']}\n") 
+                print(f"{character['name']} {response['choices'][0]['message']['content']}\n") 
                 
                 # print(response)
                 # Handle the response for TTS
